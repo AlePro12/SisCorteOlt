@@ -5,10 +5,11 @@ var FormData = require("form-data");
 const mongoose = require("mongoose");
 const fetch = require("node-fetch");
 const axios = require("axios");
-const bodyParser = require("body-parser");
+const bodyParser = require("body-parser"); // Franginer katherin guillen griman (te amo mi nina)
 const Headers = require("node-fetch");
 const fs = require("fs");
 const onus = require("../models/onus");
+const Olts = require("../models/Olts");
 class SmartOltSDKByAP {
     constructor(options) {
         this.OltId = options.OltId;
@@ -16,6 +17,13 @@ class SmartOltSDKByAP {
         this.ListaDeActivacion = [];
         this.subdomain = options.subdomain;
         this.API = options.API;
+    }
+    async GetOltName(id) {
+        //obtengo el nombre de la olt en la base de datos
+        var OltName = await Olts.findOne({
+            _id: id,
+        });
+        return OltName.Olt_Name;
     }
     async SendMassCut(ListaDeCorte, ListaDeActivacion) {
         var CortesFallidos = 0;
@@ -27,6 +35,7 @@ class SmartOltSDKByAP {
         var ActivacionesCompletadas = 0;
         var CortesCompletados = 0;
         var Log = [];
+        var LogAll = [];
         console.log(ListaDeCorte.length - 1);
         for (let index = 0; index < ListaDeCorte.length; index++) {
             const element = ListaDeCorte[index];
@@ -44,6 +53,7 @@ class SmartOltSDKByAP {
                 var respuesta = await this.CortarGrupo(tmpListaCorte);
                 console.log(respuesta);
                 Log.push(respuesta.errorlist);
+                LogAll.push(respuesta.Log);
                 if (respuesta.status == true) {
                     CortesCompletados = CortesCompletados + respuesta.CompleteCor;
                     CortesFallidos = CortesFallidos + respuesta.errorcount;
@@ -55,6 +65,7 @@ class SmartOltSDKByAP {
                     console.log("Fin mi rey");
                     var respuesta = await this.CortarGrupo(tmpListaCorte);
                     Log.push(respuesta.errorlist);
+                    LogAll.push(respuesta.Log);
                     if (respuesta.status == true) {
                         CortesCompletados = CortesCompletados + 1;
                     }
@@ -107,6 +118,7 @@ class SmartOltSDKByAP {
             status: true,
             Corte: ListaDeCorte,
             Log: Log,
+            LogAll: LogAll,
             Activacion: ListaDeActivacion,
             CortesCompletados: CortesCompletados,
             ActivacionesCompletadas: ActivacionesCompletadas,
@@ -118,6 +130,9 @@ class SmartOltSDKByAP {
     async ClientList() {
         // Separar por olt name
         const oltid = this.OltId;
+        const Olt_Name = await this.GetOltName(oltid);
+        console.log(Olt_Name);
+
         //Actualizar la lista de onus
         var requestOptions = {
             method: "GET",
@@ -126,6 +141,7 @@ class SmartOltSDKByAP {
             },
         };
         console.log("AQUI EMPIEZA EL FETCH");
+
         fetch(
                 "https://" +
                 this.subdomain +
@@ -136,16 +152,13 @@ class SmartOltSDKByAP {
             .then(async function(result) {
                 //   console.log(result)
                 //Save json file to mongoDB
-                console.log(result);
+                //console.log(result);
                 if (result.status == false) {
                     console.log("Error al obtener la lista de onus");
                     return false;
                 }
                 const onusf = result.onus;
                 for (const resultOlt of onusf) {
-                    //save each onu in the mongoDB
-                    console.log(resultOlt.sn);
-                    //find a onu by sn and update it or create a new one
                     await onus.findOne({
                             PON: resultOlt.sn,
                         },
@@ -176,7 +189,7 @@ class SmartOltSDKByAP {
                                 });
                                 await newOnu.save(function(err, onu) {
                                     if (err) return console.error(err);
-                                    console.log("Onu saved successfully");
+                                    //   console.log("Onu saved successfully");
                                 });
                             } else {
                                 //update the onu
@@ -207,11 +220,13 @@ class SmartOltSDKByAP {
     }
     async CortarGrupo(Grupo) {
         var CompleteCor = 0;
+        var Log = [];
         var errorlist = [];
         var errorcount = 0;
         var bodyFormData = new FormData();
         bodyFormData.append("onus_external_ids", Grupo);
         //console.log(bodyFormData)
+        Log.push("Cortando grupo: " + Grupo);
         try {
             let response = await axios({
                 method: "post",
@@ -225,9 +240,11 @@ class SmartOltSDKByAP {
             if (response.data.status == true) {
                 var data = response.data;
                 //if data is array
+                Log.push("Grupo Cortado: " + response.data);
                 if (Array.isArray(data.response) == true) {
                     console.log("Es un array");
                     for (var i = 0; i < data.response.length; i++) {
+                        log.push("Arr Crt [" + CompleteCor + "]: " + data.response[i]);
                         if (data.response[i].includes("No ONU was found")) {
                             console.log("No ONU was found");
                             errorlist.push(data.response[i]);
@@ -242,12 +259,15 @@ class SmartOltSDKByAP {
                         errorcount: errorcount,
                         errorlist: errorlist,
                         CompleteCor: CompleteCor,
+                        Log: Log,
                     };
                 } else {
                     var ResultArray = Object.values(data.response);
                     console.log(ResultArray);
                     for (var i in ResultArray) {
+                        log.push(ResultArray[i]);
                         if (ResultArray[i].includes("No ONU was found")) {
+                            log.push("For Crt [" + CompleteCor + "]: " + data.response[i]);
                             errorlist.push(ResultArray[i]);
                             errorcount = errorcount + 1;
                         } else {
@@ -260,12 +280,18 @@ class SmartOltSDKByAP {
                         errorcount: errorcount,
                         errorlist: errorlist,
                         CompleteCor: CompleteCor,
+                        Log: Log,
                     };
                 }
             } else {
+                log.push("Error Cortando Grupo: " + response.data);
                 return {
                     error: response.data,
                     status: false,
+                    Log: Log,
+                    errorlist: errorlist,
+                    errorcount: errorcount,
+                    CompleteCor: CompleteCor,
                 };
             }
         } catch (error) {

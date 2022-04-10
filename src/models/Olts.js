@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 // Define the schema
@@ -12,29 +12,30 @@ const { Schema } = mongoose;
 }
   */
 const Olts = new Schema({
-    Olt_id: { type: Number, required: false },
-    Descrip: { type: String, required: true },
-    latitude: { type: Number, required: true },
-    longitude: { type: Number, required: true },
-    State: { type: String, required: true },
-    City: { type: String, required: true },
-    ip: { type: String, required: true },
-    Method: { type: String, required: true },
-    Model: { type: String, required: true },
-    User: { type: String, required: true },
-    Pass: { type: String, required: true },
-    Status: { type: String, required: true, default: "Active" },
-    Last_update: {
-        type: Date,
-        required: true,
-        default: Date.now
-    },
-    Last_status: { type: String, required: true, default: "Active" },
-    Last_status_date: {
-        type: Date,
-        required: true,
-        default: Date.now
-    }
+  Olt_id: { type: Number, required: false },
+  Descrip: { type: String, required: true },
+  latitude: { type: Number, required: true },
+  longitude: { type: Number, required: true },
+  State: { type: String, required: true },
+  City: { type: String, required: true },
+  ip: { type: String, required: true },
+  Method: { type: String, required: true },
+  Olt_Name: { type: String, required: true },
+  Model: { type: String, required: true },
+  User: { type: String, required: true },
+  Pass: { type: String, required: true },
+  Status: { type: String, required: true, default: "Active" },
+  Last_update: {
+    type: Date,
+    required: true,
+    default: Date.now,
+  },
+  Last_status: { type: String, required: true, default: "Active" },
+  Last_status_date: {
+    type: Date,
+    required: true,
+    default: Date.now,
+  },
 });
 // Export the model
-module.exports = mongoose.model('Olts', Olts);
+module.exports = mongoose.model("Olts", Olts);
