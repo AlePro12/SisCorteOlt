@@ -4,7 +4,9 @@ dist
 /public
 app copy
 Franginer
-API.json
 wisphub.js
-Server.json
 test
+src/server.json
+src/API.json
+src/wisphub.js
+webpack.configPG.js
