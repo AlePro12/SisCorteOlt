@@ -7,6 +7,7 @@ import BootstrapTable from "react-bootstrap-table-next";
 const ExcelFile = ReactExport.ExcelFile;
 const ExcelSheet = ReactExport.ExcelFile.ExcelSheet;
 const ExcelColumn = ReactExport.ExcelFile.ExcelColumn;
+
 import {
   Container,
   Card,
@@ -22,6 +23,7 @@ import {
   NotificationContainer,
   NotificationManager,
 } from "react-notifications";
+import TableInfoClients from "./TableInfoClients";
 
 //http://localhost:3000/Lista
 export default function Olt(props) {
@@ -267,6 +269,7 @@ export default function Olt(props) {
       .catch((error) => console.log(error));
   };
   const SwitchMode = ({ acti, sn }) => {
+    console.log(acti);
     if (acti == true) {
       return (
         <Form>
@@ -410,49 +413,22 @@ export default function Olt(props) {
           <Card.Body>
             <Card.Title>Desconexion/Conexion Manual</Card.Title>
             <Card.Text></Card.Text>
+
             {Onusloads ? (
-              <Table striped bordered hover>
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>ONU SN</th>
-                    <th>Zona</th>
-                    <th>Puerto</th>
-
-                    <th>Nombre</th>
-
-                    <th>Estado</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Onus.map((listValue, index) => {
-                    var ActiveClient = false;
-                    if (listValue.LocalInfo.AdminState == true) {
-                      ActiveClient = true;
-                    } else {
-                      ActiveClient = false;
-                    }
-                    return (
-                      <tr key={index}>
-                        <td>{index}</td>
-                        <td>{listValue.PON}</td>
-                        <td>{listValue.OltInfo.zone_name}</td>
-                        <td>{listValue.OltInfo.port}</td>
-
-                        <td>
-                          {listValue.LocalInfo.Nombre}
-                          <a href="#" onClick={() => EditName(listValue._id)}>
-                            Edit
-                          </a>
-                        </td>
-                        <td>
-                          <SwitchMode acti={ActiveClient} sn={listValue.PON} />
-                        </td>
-                      </tr>
-                    );
+              <>
+                <TableInfoClients
+                  SwitchMode={SwitchMode}
+                  data={Onus.map(function (onu) {
+                    return {
+                      name: onu.LocalInfo.Nombre,
+                      PON: onu.PON,
+                      AdminState: onu.LocalInfo.AdminState,
+                      Zone: onu.OltInfo.zone_name,
+                      port: onu.OltInfo.port,
+                    };
                   })}
-                </tbody>
-              </Table>
+                />
+              </>
             ) : (
               <Container>
                 <Row className="justify-content-md-center">

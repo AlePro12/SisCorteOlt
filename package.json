@@ -54,7 +54,7 @@
         "puppeteer-core": "^13.5.1",
         "react-bootstrap": "^2.0.2",
         "react-bootstrap-table-next": "^4.0.3",
-        "react-bs-datatable": "^3.2.2",
+        "react-bs-datatable": "^3.2.1",
         "react-map-gl": "^6.1.18",
         "react-notifications": "^1.7.3",
         "react-router-dom": "^4.3.1",
