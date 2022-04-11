@@ -242,11 +242,11 @@ class SmartOltSDKByAP {
       if (response.data.status == true) {
         var data = response.data;
         //if data is array
-        Log.push("Grupo Cortado: " + response.data);
+        Log.push("Grupo Cortado: " + JSON.stringify(response.data));
         if (Array.isArray(data.response) == true) {
           console.log("Es un array");
           for (var i = 0; i < data.response.length; i++) {
-            log.push("Arr Crt [" + CompleteCor + "]: " + data.response[i]);
+            Log.push("Arr Crt [" + CompleteCor + "]: " + data.response[i]);
             if (data.response[i].includes("No ONU was found")) {
               console.log("No ONU was found");
               errorlist.push(data.response[i]);
@@ -267,9 +267,9 @@ class SmartOltSDKByAP {
           var ResultArray = Object.values(data.response);
           console.log(ResultArray);
           for (var i in ResultArray) {
-            log.push(ResultArray[i]);
+            Log.push(ResultArray[i]);
             if (ResultArray[i].includes("No ONU was found")) {
-              log.push("For Crt [" + CompleteCor + "]: " + data.response[i]);
+              Log.push("For Crt [" + CompleteCor + "]: " + data.response[i]);
               errorlist.push(ResultArray[i]);
               errorcount = errorcount + 1;
             } else {

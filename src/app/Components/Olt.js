@@ -117,14 +117,22 @@ export default function Olt(props) {
             buttons: {
               cancel: "Listo",
               catch: {
-                text: "Descargar Log",
+                text: "Descargar Log resumido",
                 value: "Log",
+              },
+              confirm: {
+                text: "Descargar Log Completo",
+                value: "LogCompleto",
               },
             },
           }).then((value) => {
             switch (value) {
               case "Log":
                 downloadLogFile(data.Log);
+                // swal("PRITNTLOG");
+                break;
+              case "LogCompleto":
+                downloadLogFile(data.LogAll);
                 // swal("PRITNTLOG");
                 break;
             }
@@ -231,14 +239,19 @@ export default function Olt(props) {
         );
     }
   };
-  const setActiveClient = (sn, acti) => {
+  const setActiveClient = (e, sn, acti) => {
+    console.log(e);
+    console.log(e.target.checked);
+    var action = "Activado";
+    acti = e.target.checked;
     var urld = "api/Olt/" + Oltid;
     console.log(acti);
     if (acti == true) {
+      urld = "/api/Olt/EnableOnu/" + sn + "/" + Oltid;
+    } else {
+      action = "Desactivado";
       console.log("disable");
       urld = "/api/Olt/DisableOnu/" + sn + "/" + Oltid;
-    } else {
-      urld = "/api/Olt/EnableOnu/" + sn + "/" + Oltid;
     }
     fetch(urld)
       .then((response) => response.json())
@@ -246,7 +259,7 @@ export default function Olt(props) {
         if (data.ok == true) {
           //setNotEmps(true);
           //search the onu in the list and change the status
-          var newOnus = Onus.map(function (onu) {
+          /*     var newOnus = Onus.map(function (onu) {
             if (onu.PON == sn) {
               if (acti == true) {
                 onu.LocalInfo.AdminState = false;
@@ -256,10 +269,10 @@ export default function Olt(props) {
             }
             return onu;
           });
-          setOnus(newOnus);
+          setOnus(newOnus);*/
           NotificationManager.success(
             "Onu " + sn + " " + acti,
-            "Cliente Actualizado",
+            "Cliente Actualizado Resultado: " + action,
             3000
           );
         } else {
@@ -269,29 +282,54 @@ export default function Olt(props) {
       .catch((error) => console.log(error));
   };
   const SwitchMode = ({ acti, sn }) => {
-    console.log(acti);
-    if (acti == true) {
+    console.log(sn + ": " + acti);
+    //is acti bool
+
+    if (acti) {
+      console.log("Checked");
       return (
-        <Form>
-          <Form.Check
-            type="switch"
-            id="custom-switch"
-            label=""
-            onChange={() => setActiveClient(sn, acti)}
-            checked
-          />
-        </Form>
+        <>
+          <label
+            className="switch"
+            style={{
+              fontSize: 2,
+              color: "green",
+            }}
+          >
+            on
+          </label>
+          <Form>
+            <Form.Check
+              type="switch"
+              id="custom-switch"
+              label=""
+              onChange={(e) => setActiveClient(e, sn, acti)}
+              checked
+            />
+          </Form>
+        </>
       );
     } else {
       return (
-        <Form>
-          <Form.Check
-            type="switch"
-            id="custom-switch"
-            label=""
-            onChange={() => setActiveClient(sn, acti)}
-          />
-        </Form>
+        <>
+          <label
+            className="switch"
+            style={{
+              fontSize: "5",
+              color: "red",
+            }}
+          >
+            off
+          </label>
+          <Form>
+            <Form.Check
+              type="switch"
+              id="custom-switch"
+              label=""
+              onChange={(e) => setActiveClient(e, sn, acti)}
+            />
+          </Form>
+        </>
       );
     }
   };
