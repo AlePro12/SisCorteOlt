@@ -11,16 +11,18 @@ const app = express();
 const bodyParser = require("body-parser");
 
 //bypass de licencia para pruebas
-//si existe Franginer.json en la carpeta de la aplicacion
+//si existe c445a888a43b9d0cb4e82d2d74aa91ed95a203c1 en la carpeta de la aplicacion
 const fs = require("fs");
 
 console.log("Giving only read permission to user");
-
 var bypass = false;
 try {
-  console.log(process.cwd() + "/Franginer");
+  console.log(process.cwd() + "/f5b5ddaf21b1aa588820577c2b30187a99142c36");
 
-  fs.accessSync(process.cwd() + "/Franginer", fs.F_OK);
+  fs.accessSync(
+    process.cwd() + "/f5b5ddaf21b1aa588820577c2b30187a99142c36",
+    fs.F_OK
+  );
   bypass = true;
   console.log("\n******Bypass de licencia activado******\n");
 } catch (e) {
@@ -135,6 +137,8 @@ function Apprun(licp) {
     app.use(express.json());
     //import routes
     app.use("/api/LoginAgent/", require("./routes/Login.routes"));
+    app.use("/api/task/", require("./routes/task.routes"));
+
     app.use("/api/Olt", require("./routes/Olt.routes"));
     app.use("/api/onu", require("./routes/onu.routes"));
     //SET STORAGE

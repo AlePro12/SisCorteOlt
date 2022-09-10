@@ -16,7 +16,7 @@ const multer = require("multer");
 const OpenSmartSdk = require("../Controllers/OltFrameworkSmartOlt");
 const OpenTplinkOltSdk = require("../Controllers/OltFrameworktelnet");
 const OpenSmartSdkMixed = require("../Controllers/OltFrameworkSmartOltMixedTelnet");
-
+//socket.io
 //smartoltMixed
 const path = require("path");
 
@@ -108,6 +108,61 @@ router.post(
     res.json(json);
   }
 );
+router.post(
+  "/UploadPlans/:OltId",
+  upload.single("uploaded_file"),
+  async function (req, res, next) {
+    Id = req.params.OltId;
+    //find Olt by Id
+    const olt = await Olts.findById(Id);
+    //create a new instance of the OpenSmartSdk
+    if (!olt) return res.status(404).send({ message: "No existe la OLT" });
+    console.log(req.file);
+    const result = excelToJson({
+      sourceFile: req.file.path,
+    });
+    json = await GenerateListPlans(result);
+    console.log(json);
+    res.json(json);
+  }
+);
+router.post(
+  "/UploadMove/:OltId",
+  upload.single("uploaded_file"),
+  async function (req, res, next) {
+    Id = req.params.OltId;
+    //find Olt by Id
+    const olt = await Olts.findById(Id);
+    //create a new instance of the OpenSmartSdk
+    if (!olt) return res.status(404).send({ message: "No existe la OLT" });
+    console.log(req.file);
+    const result = excelToJson({
+      sourceFile: req.file.path,
+    });
+    json = await GenerateListMove(result);
+    console.log(json);
+    res.json(json);
+  }
+);
+router.post(
+  "/UploadReSync/:OltId",
+  upload.single("uploaded_file"),
+  async function (req, res, next) {
+    Id = req.params.OltId;
+    //find Olt by Id
+    const olt = await Olts.findById(Id);
+    //create a new instance of the OpenSmartSdk
+    if (!olt) return res.status(404).send({ message: "No existe la OLT" });
+    console.log(req.file);
+    const result = excelToJson({
+      sourceFile: req.file.path,
+    });
+    json = await GenerateListReSync(result);
+    console.log(json);
+    res.json(json);
+  }
+);
+//GenerateListReSync
 router.get("/Lista/:OltId", async function (req, res) {
   //id get from get request
   Id = req.params.OltId;
@@ -123,7 +178,7 @@ router.get("/Lista/:OltId", async function (req, res) {
       API: olt.User,
       subdomain: olt.ip,
     });
-    Result = await oss.ClientList(IdOnu);
+    //Result = await oss.ClientList(IdOnu);
     res.json(Result);
   } else if (olt.Method == "smartolt") {
     const oss = new OpenSmartSdk({
@@ -196,8 +251,6 @@ router.get("/DisableOnu/:id/:OltId", async function (req, res) {
     Result = await oss.DisableOnu(IdOnu);
     res.json(Result);
   } else if (olt.Method == "smartolt") {
-    ListaDeCorte = req.body.ListaDeCorte;
-    ListaDeActivacion = req.body.ListaDeActivacion;
     const oss = new OpenSmartSdk({
       OltId: Id,
       API: olt.User,
@@ -231,8 +284,6 @@ router.get("/EnableOnu/:id/:OltId", async function (req, res) {
   if (!olt) return res.status(404).send({ message: "No existe la OLT" });
 
   if (olt.Method == "smartoltMixed") {
-    ListaDeCorte = req.body.ListaDeCorte;
-    ListaDeActivacion = req.body.ListaDeActivacion;
     const oss = new OpenSmartSdkMixed({
       OltId: Id,
       API: olt.User,
@@ -241,8 +292,6 @@ router.get("/EnableOnu/:id/:OltId", async function (req, res) {
     Result = await oss.EnableOnu(IdOnu);
     res.json(Result);
   } else if (olt.Method == "smartolt") {
-    ListaDeCorte = req.body.ListaDeCorte;
-    ListaDeActivacion = req.body.ListaDeActivacion;
     const oss = new OpenSmartSdk({
       OltId: Id,
       API: olt.User,
@@ -291,8 +340,12 @@ router.post("/SendMassCut/:OltId", async function (req, res) {
       API: olt.User,
       subdomain: olt.ip,
     });
-    Result = await oss.SendMassCut(ListaDeCorte, ListaDeActivacion);
-    res.json(Result);
+    Result = oss.SendMassCut_Task(ListaDeCorte, ListaDeActivacion);
+    res.json({
+      message: "Tarea enviada",
+      ok: true,
+      status: true,
+    });
   } else if (olt.Method == "telnet") {
     //modelo tplink
     if (olt.Model == "tplink") {
@@ -312,6 +365,129 @@ router.post("/SendMassCut/:OltId", async function (req, res) {
     res.json({ message: "Framework no soportado" });
   }
 });
+//SendMassMove
+router.post("/SendMassMove/:OltId", async function (req, res) {
+  Id = req.params.OltId;
+  console.log(Id);
+  const olt = await Olts.findById(mongoose.Types.ObjectId(Id));
+  if (!olt) return res.status(404).send({ message: "No existe la OLT" });
+  if (olt.Method == "smartolt") {
+    Lista = req.body.Lista;
+    const oss = new OpenSmartSdk({
+      OltId: Id,
+      API: olt.User,
+      subdomain: olt.ip,
+    });
+    Result = oss.moveTask(Lista);
+    res.json({
+      message: "Tarea enviada",
+      ok: true,
+      status: true,
+    });
+  } else {
+    res.json({ message: "Equipo no soportado" });
+  }
+});
+router.post("/SendMassReSync/:OltId", async function (req, res) {
+  Id = req.params.OltId;
+  console.log(Id);
+  const olt = await Olts.findById(mongoose.Types.ObjectId(Id));
+  if (!olt) return res.status(404).send({ message: "No existe la OLT" });
+  if (olt.Method == "smartolt") {
+    Lista = req.body.Lista;
+    const oss = new OpenSmartSdk({
+      OltId: Id,
+      API: olt.User,
+      subdomain: olt.ip,
+    });
+    Result = oss.resyncTask(Lista);
+    res.json({
+      message: "Tarea enviada",
+      ok: true,
+      status: true,
+    });
+  } else {
+    res.json({ message: "Equipo no soportado" });
+  }
+});
+router.post("/SendMassPlans/:OltId", async function (req, res) {
+  Id = req.params.OltId;
+  console.log(Id);
+  const olt = await Olts.findById(mongoose.Types.ObjectId(Id));
+  if (!olt) return res.status(404).send({ message: "No existe la OLT" });
+  if (olt.Method == "smartolt") {
+    Lista = req.body.Lista;
+    const oss = new OpenSmartSdk({
+      OltId: Id,
+      API: olt.User,
+      subdomain: olt.ip,
+    });
+    Result = await oss.SendMassPlans(Lista);
+    res.json(Result);
+  } else {
+    res.json({ message: "Equipo no soportado" });
+  }
+});
+
+async function GenerateListPlans(result) {
+  this.Lista = [];
+  var ListaIndex = 0;
+  console.log(result);
+  for (let index = 1; index < result["Ont"].length; index++) {
+    var ONU = result["Ont"][index].B;
+    var PLAN = result["Ont"][index].C;
+    if (ONU !== "" && PLAN !== "") {
+      //A es la onu y B es el PLAN
+      Lista.push({
+        PON: ONU,
+        Plan: PLAN,
+      });
+    }
+  }
+  return Lista;
+}
+async function GenerateListMove(result) {
+  this.Lista = [];
+  var ListaIndex = 0;
+  console.log(result);
+  for (let index = 1; index < result["Ont"].length; index++) {
+    var ONU = result["Ont"][index].B;
+    var OLT = result["Ont"][index].C;
+    var BOARD = result["Ont"][index].D;
+    var PORT = result["Ont"][index].E;
+
+    if (ONU !== "" && OLT !== "" && BOARD !== "" && PORT !== "") {
+      //A es la onu y B es el PLAN
+      Lista.push({
+        onuId: ONU,
+        oltId: OLT,
+        portId: PORT,
+        boardId: BOARD,
+      });
+    }
+  }
+  return Lista;
+}
+async function GenerateListReSync(result) {
+  this.Lista = [];
+  var ListaIndex = 0;
+  console.log(result);
+  for (let index = 1; index < result["Ont"].length; index++) {
+    var ONU = result["Ont"][index].B;
+    var BOARD = result["Ont"][index].C;
+    var PORT = result["Ont"][index].D;
+
+    if (ONU !== "" && BOARD !== "" && PORT !== "") {
+      //A es la onu y B es el PLAN
+      Lista.push({
+        onuId: ONU,
+        portId: PORT,
+        boardId: BOARD,
+      });
+    }
+  }
+  return Lista;
+}
 async function GenerateList(result) {
   this.ListaDeCorte = [];
   this.ListaDeActivacion = [];

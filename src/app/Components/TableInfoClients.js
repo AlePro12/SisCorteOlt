@@ -22,9 +22,17 @@ export default function TableInfoClients(props) {
       isFilterable: true,
     },
     //LocalInfo.nombre
+
     {
       prop: "name",
       title: "Cliente",
+      isFilterable: true,
+      isSortable: true,
+      rowOnClickText: "Ver",
+    },
+    {
+      title: "Dirección Real",
+      prop: "Address",
       isFilterable: true,
       isSortable: true,
     },
@@ -36,8 +44,20 @@ export default function TableInfoClients(props) {
       isSortable: true,
     },
     {
+      title: "Rs",
+      prop: "Rs",
+      isFilterable: false,
+      isSortable: false,
+    },
+    {
       title: "Zona",
       prop: "Zone",
+      isFilterable: true,
+      isSortable: true,
+    },
+    {
+      title: "Planes Activos",
+      prop: "Plan",
       isFilterable: true,
       isSortable: true,
     },
@@ -45,7 +65,20 @@ export default function TableInfoClients(props) {
     {
       title: "Estado",
       prop: "Estado",
-      cell: (row) => <props.SwitchMode acti={row.AdminState} sn={row.PON} />,
+    },
+    {
+      prop: "name2",
+      title: "Cliente",
+      hide: true,
+      hidden: true,
+      cellProps: {
+        style: {
+          display: "none",
+        },
+      },
+      isFilterable: true,
+      isSortable: true,
+      rowOnClickText: "Ver",
     },
   ];
 
@@ -91,7 +124,13 @@ export default function TableInfoClients(props) {
       </Row>
       <Table>
         <TableHeader />
-        <TableBody />
+        <TableBody
+          onRowClick={(row) => {
+            console.log(row);
+            //go to page /Onu/${row.PON}
+            //props.history.push(`/Onu/${row.PON}`);
+          }}
+        />
       </Table>
     </DatatableWrapper>
   );
